@@ -629,10 +629,26 @@ recv_chunk(struct context *ctx, char *buf, int size)
 struct tuple *
 recv_tuple(struct context *ctx)
 {
+
+	/*
+	printf("element memory layout: ");
+	struct element e;
+	
+	int base = (int)(void*)&e;
+	int tag = (int)(void*)&(e.tag) - base;
+	int in = (int)(void*)&(e.data.i) - base;
+	int d = (int)(void*)&(e.data.d) - base;
+	int sptr = (int)(void*)&(e.data.s.ptr) - base;
+	int slen = (int)(void*)&(e.data.s.len) - base;
+	int stuple = (int)(void*)&(e.data.t) - base;
+	
+	printf("tag: %d, i:%d, d:%d, sptr:%d, slen:%d, stuple:%d\n", tag, in, d, sptr, slen, stuple);
+	*/
+
 	//PRINTF("JK: receiving tuple...\n");
 	//PRINTF("JK: sizeof(struct element): %d\n", sizeof(struct element));
 	struct tuple *s;
-	int i, num_elts, string_length, element_size;
+	int i, j, num_elts, string_length, element_size;
 
 	if (recv_chunk(ctx, (char *) &num_elts, sizeof(int))) {
 		PERROR("recv_chunk failed");
@@ -679,6 +695,22 @@ recv_tuple(struct context *ctx)
 			PRINTF("element %d of %d was not received\n", i, num_elts);
 			return NULL;
 		}
+		/*
+		printf("raw data(offset: %x): ", &s->elements[i]);
+		for(j=0; j<sizeof(struct element); j++)
+			printf("%d ", ((char*)&s->elements[i])[j]);
+		printf("\n");
+		
+		printf("tag: %c\n", s->elements[i].tag);
+		if (s->elements[i].tag == 'i')
+		{
+			printf("val: %d; offset: %x\n", s->elements[i].data.i, (int)(void*)&s->elements[i].data.i);
+		}
+		if (s->elements[i].tag == 'd')
+		{
+			printf("val: %d; offset: %x\n", s->elements[i].data.d, (int)(void*)&s->elements[i].data.d);
+		}
+		*/
 		if (s->elements[i].tag == 't') {
 			struct tuple *nested_tuple = recv_tuple(ctx);
 			if (!nested_tuple)
